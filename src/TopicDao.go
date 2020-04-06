@@ -3,7 +3,6 @@ package src
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 )
 
 // 必须登录
@@ -19,12 +18,13 @@ func MustLogin() gin.HandlerFunc {
 }
 
 func GetTopicDetail(c *gin.Context) {
-	//c.String(http.StatusOK, "获取topic=%s的帖子", c.Param("topic_id"))
-	topicId, err := strconv.Atoi(c.Param("topic_id"))
 	if err != nil {
 		c.String(http.StatusBadRequest, "topic_id字段错误:%s", c.Param("topic_id"))
 	} else {
-		c.JSON(http.StatusOK, CreateTopic(topicId, "帖子标题"))
+		topicId := c.Param("topic_id")
+		topics := Topic{}
+		DBHelper.Find(&topics, topicId)
+		c.JSON(http.StatusOK, topics)
 	}
 }
 
@@ -49,7 +49,6 @@ func NewTopics(c *gin.Context) {
 		c.JSON(http.StatusOK, Topics)
 	}
 }
-
 
 func DelTopic(c *gin.Context) {
 	//判断登录
