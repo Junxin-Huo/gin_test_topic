@@ -1,7 +1,6 @@
 package src
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
 	"time"
 )
@@ -9,11 +8,13 @@ import (
 var DBHelper *gorm.DB
 var err error
 
-func init() {
+func InitDB() {
 	DBHelper, err = gorm.Open("mysql", "root:123456@/gin?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
-		fmt.Println(err.Error())
-		panic(err)
+		//log.Fatal("初始化DB错误:", err)
+		//panic(err)
+		ShutDownServer(err)
+		return
 	}
 	DBHelper.LogMode(true)
 	DBHelper.DB().SetMaxIdleConns(10)

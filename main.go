@@ -8,12 +8,14 @@ import (
 	"github.com/go-playground/validator/v10"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	hjxSrc "hjx.test/topic/src"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
 )
 
-func main() {
+func main2() {
 	var count int
 	go func() {
 		count = 0
@@ -38,11 +40,12 @@ func main() {
 	}()
 
 	signal.Notify(signals, os.Interrupt)
+	fmt.Println("a")
 	s := <-signals
 	fmt.Println(s)
 }
 
-func main2() {
+func main() {
 	router := gin.Default()
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("topicurl", hjxSrc.TopicUrl)
@@ -77,5 +80,28 @@ func main2() {
 		}
 	}
 
-	router.Run()
+	//router.Run()
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: router,
+	}
+	// 链接DB
+	go func() {
+		hjxSrc.InitDB()
+	}()
+	// 启动web服务
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			log.Fatal("服务器启动失败", err)
+		}
+	}()
+
+	hjxSrc.ServiceNotify()
+	// 其他资源释放
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal("关闭服务器")
+	}
+	log.Println("服务器正常退出")
 }
