@@ -3,6 +3,7 @@ package src
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 var DBHelper *gorm.DB
@@ -15,4 +16,7 @@ func init() {
 		panic(err)
 	}
 	DBHelper.LogMode(true)
+	DBHelper.DB().SetMaxIdleConns(10)
+	DBHelper.DB().SetMaxOpenConns(100)
+	DBHelper.DB().SetConnMaxLifetime(time.Hour)
 }

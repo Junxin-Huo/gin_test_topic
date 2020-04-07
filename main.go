@@ -1,14 +1,48 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	hjxSrc "hjx.test/topic/src"
+	"os"
+	"os/signal"
+	"time"
 )
 
 func main() {
+	var count int
+	go func() {
+		count = 0
+		for {
+			fmt.Println("执行", count)
+			count++
+			time.Sleep(time.Second)
+		}
+	}()
+
+	signals := make(chan os.Signal)
+
+	go func() {
+		fmt.Println("1")
+		ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
+		fmt.Println("2")
+		select {
+		case <-ctx.Done():
+			fmt.Println(3)
+			signals <- os.Interrupt
+		}
+	}()
+
+	signal.Notify(signals, os.Interrupt)
+	s := <-signals
+	fmt.Println(s)
+}
+
+func main2() {
 	router := gin.Default()
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("topicurl", hjxSrc.TopicUrl)
