@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"github.com/gomodule/redigo/redis"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	hjxSrc "hjx.test/topic/src"
 	"log"
@@ -46,6 +47,17 @@ func main2() {
 }
 
 func main() {
+	conn := hjxSrc.RedisDefaultPool.Get()
+	defer conn.Close()
+	res, err := redis.String(conn.Do("get", "name"))
+	if err != nil {
+		log.Println("err:", err)
+		return
+	}
+	log.Println(res)
+}
+
+func main3() {
 	router := gin.Default()
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("topicurl", hjxSrc.TopicUrl)
