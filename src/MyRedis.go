@@ -32,5 +32,5 @@ func newPool(addr, pwd string, db int) *redis.Pool {
 }
 
 func init() {
-	RedisDefaultPool = newPool("127.0.0.1:6379", "123456", 0)
+	RedisDefaultPool = newPool("127.0.0.1:6379", "123456", 1)
 }

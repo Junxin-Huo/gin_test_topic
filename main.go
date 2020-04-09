@@ -46,7 +46,7 @@ func main2() {
 	fmt.Println(s)
 }
 
-func main() {
+func main3() {
 	conn := hjxSrc.RedisDefaultPool.Get()
 	defer conn.Close()
 	res, err := redis.String(conn.Do("get", "name"))
@@ -57,7 +57,7 @@ func main() {
 	log.Println(res)
 }
 
-func main3() {
+func main() {
 	router := gin.Default()
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("topicurl", hjxSrc.TopicUrl)

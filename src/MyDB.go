@@ -16,7 +16,7 @@ func InitDB() {
 		ShutDownServer(err)
 		return
 	}
-	DBHelper.LogMode(true)
+	//DBHelper.LogMode(true)
 	DBHelper.DB().SetMaxIdleConns(10)
 	DBHelper.DB().SetMaxOpenConns(100)
 	DBHelper.DB().SetConnMaxLifetime(time.Hour)

@@ -1,7 +1,10 @@
 package src
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/gomodule/redigo/redis"
+	"log"
 	"net/http"
 )
 
@@ -23,8 +26,50 @@ func GetTopicDetail(c *gin.Context) {
 	} else {
 		topicId := c.Param("topic_id")
 		topics := Topic{}
-		DBHelper.Find(&topics, topicId)
-		c.JSON(http.StatusOK, topics)
+		//DBHelper.Find(&topics, topicId)
+		//c.JSON(http.StatusOK, topics)
+
+		conn := RedisDefaultPool.Get()
+		defer conn.Close()
+		redisKey := "topic_" + topicId
+		res, err := redis.Bytes(conn.Do("get", redisKey))
+		if err != nil {
+			// 缓存里没有值
+			DBHelper.Find(&topics, topicId)
+			bytes, err2 := json.Marshal(topics)
+
+			var redisTime int
+			if topics.TopicID == 0 {
+				// 从数据库中未匹配到数据
+				redisTime = 20
+			} else {
+				// 正常数据
+				redisTime = 60
+			}
+
+			if err2 != nil {
+				c.JSON(http.StatusInternalServerError, "json序列化错误，未缓存到redis")
+				return
+			} else {
+				_, err2 := conn.Do("setex", redisKey, redisTime, bytes)
+				if err2 != nil {
+					log.Println("缓存redis失败", err2.Error())
+				} else {
+					log.Println("缓存redis成功")
+				}
+			}
+			c.JSON(http.StatusOK, topics)
+			log.Println("从数据库中读取")
+			return
+		} else {
+			// 缓存里有值
+			if err3 := json.Unmarshal(res, &topics); err3 != nil {
+				c.JSON(http.StatusInternalServerError, "redis中json解析错误")
+				return
+			}
+			c.JSON(http.StatusOK, topics)
+			log.Println("从redis中读取")
+		}
 	}
 }
 
