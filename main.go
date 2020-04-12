@@ -74,7 +74,8 @@ func main() {
 		//	c.String(http.StatusOK, "topic=%s", c.Param("topic_id"))
 		//})
 
-		v1.GET("/:topic_id", hjxSrc.GetTopicDetail)
+		v1.GET("/:topic_id", hjxSrc.CacheDecorator(hjxSrc.GetTopicDetail,
+			"topic_id", "topic_%s", hjxSrc.Topic{}))
 
 		v1.Use(hjxSrc.MustLogin())
 		{
